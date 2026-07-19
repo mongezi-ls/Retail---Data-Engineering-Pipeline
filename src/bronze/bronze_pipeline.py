@@ -1,8 +1,11 @@
 import pandas as pd
 from pathlib import Path
+from src.utils.logger import logger
 
-# Path of the raw data file
-RAW_DATA_PATH = Path("data/raw/Retail_Store_Sales.csv")
+# Constants for file paths
+
+RAW_DATA_PATH = Path("data/raw/retail_store_sales.csv")
+BRONZE_DATA_PATH = Path("data/bronze/bronze_sales.csv")
 
 # Check if the file exist
 
@@ -12,15 +15,16 @@ def load_data():
 
     """
     if not RAW_DATA_PATH.exists():
-        print(f'File not found: {RAW_DATA_PATH}')
+        logger.error(f'File not found: {RAW_DATA_PATH}')
         return None
 
-    print(f'File found: {RAW_DATA_PATH}')
+    logger.info(f'Raw data file found: {RAW_DATA_PATH}')
     df = pd.read_csv(RAW_DATA_PATH)
 
-    print('Data loaded successfully.')
+    logger.info(' Raw data loaded successfully.')
     return df
 
+# Inspect the data
 
 def inspect_data(df):
     """
@@ -45,16 +49,31 @@ def inspect_data(df):
     print("\nDataset Summary:")
     df.info()
 
+# Save Data to Bronze Layer
+
+def save_bronze_data(df):
+    """Save the raw data to the Bronze layer."""
+
+    df.to_csv(BRONZE_DATA_PATH, index=False)
+
+    logger.info("Bronze data saved successfully.")
+
 
 def main():
-    """
-    Load and inspect the data
+    logger.info("=" * 60)
+    logger.info("Starting Bronze Pipeline...")
 
-    """
     df = load_data()
 
     if df is not None:
         inspect_data(df)
+        save_bronze_data(df)
+
+        logger.info("Bronze Pipeline finished.")
+
+    else:
+        logger.error("Bronze Pipeline failed due to missing raw data.")
+
 
 if __name__ == '__main__':
     main()
