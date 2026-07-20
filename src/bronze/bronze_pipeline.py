@@ -1,8 +1,7 @@
 import pandas as pd
-from pathlib import Path
 
 # Imports for file, logger, and validator.
-
+from src.utils.file_utils import ensure_directory_exists
 from src.config.config import RAW_DATA_PATH, BRONZE_DATA_PATH
 from src.utils.logger import logger
 from src.utils.validator import validate_dataframe
@@ -10,9 +9,12 @@ from src.utils.validator import validate_dataframe
 # Check if the file exist
 
 
-def load_data():
+def load_data() -> pd.DataFrame | None:
     """
-    Load the raw data into a pandas DataFrame
+    Load the retail sales data from the raw layer.
+
+    Returns:
+        pd.DataFrame: Loaded DataFrame if the file exists, None otherwise.
 
     """
     if not RAW_DATA_PATH.exists():
@@ -29,7 +31,7 @@ def load_data():
 # Inspect the data
 
 
-def inspect_data(df):
+def inspect_data(df: pd.DataFrame) -> None:
     """
     Inspect the loaded data
 
@@ -56,9 +58,16 @@ def inspect_data(df):
 # Save Data to Bronze Layer
 
 
-def save_bronze_data(df):
-    """Save the raw data to the Bronze layer."""
+def save_bronze_data(df: pd.DataFrame) -> None:
+    """
+    Save the raw retail sales data to the Bronze layer.
 
+    Args:
+        df (pd.DataFrame): DataFrame containing the raw retail sales data.
+
+    """
+
+    ensure_directory_exists(BRONZE_DATA_PATH.parent)
     df.to_csv(BRONZE_DATA_PATH, index=False)
 
     logger.info("Bronze data saved successfully.")
@@ -72,14 +81,16 @@ def main():
 
         df = load_data()
 
-        if df is not None:
+        if df is None:
+            return
 
-            if validate_dataframe(df):
+        if not validate_dataframe(df):
+            return
 
-                inspect_data(df)
-                save_bronze_data(df)
+        inspect_data(df)
+        save_bronze_data(df)
 
-                logger.info("Bronze Pipeline finished.")
+        logger.info("Bronze Pipeline finished.")
 
     except Exception as e:
         logger.exception(f"Bronze Pipeline failed: {e}")
