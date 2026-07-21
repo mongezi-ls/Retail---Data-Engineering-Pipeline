@@ -1,4 +1,5 @@
 import pandas as pd
+import time
 
 # Imports for file, logger, and validator.
 from src.utils.file_utils import ensure_directory_exists
@@ -73,8 +74,24 @@ def save_bronze_data(df: pd.DataFrame) -> None:
     logger.info("Bronze data saved successfully.")
 
 
+# Statistics
+
+
+def log_pipeline_statistics(df: pd.DataFrame) -> None:
+    """
+    Log summary statistics for the Bronze pipeline.
+
+    Args:
+        df (pd.DataFrame): The processed DataFrame.
+    """
+    logger.info(f"Total rows processed: {df.shape[0]}")
+    logger.info(f"Total columns processed: {df.shape[1]}")
+    logger.info(f"Bronze output path: {BRONZE_DATA_PATH}")
+
+
 def main():
     logger.info("=" * 60)
+    start_time = time.perf_counter()
 
     try:
         logger.info("Starting Bronze Pipeline...")
@@ -89,6 +106,7 @@ def main():
 
         inspect_data(df)
         save_bronze_data(df)
+        log_pipeline_statistics(df)
 
         logger.info("Bronze Pipeline finished.")
 
@@ -96,6 +114,10 @@ def main():
         logger.exception(f"Bronze Pipeline failed: {e}")
 
     finally:
+        end_time = time.perf_counter()
+        execute_time = end_time - start_time
+
+        logger.info(f"Bronze Pipeline execution time: {execute_time:.2f} seconds")
         logger.info("=" * 60)
 
 
